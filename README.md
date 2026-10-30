@@ -28,9 +28,128 @@ A production-grade, Clean Architecture Flutter package for managing secondary sc
 
 ## 🏛 Architecture Overview
 
+`flutter_second_screen` strictly adheres to **Clean Architecture** and **SOLID** principles, ensuring decoupling between UI, business rules, and platform-specific window managers.
+
+### 🌳 Architectural Component Tree
+
+```text
+flutter_second_screen
+├── 📱 Presentation Layer (Flutter Widgets & Mixins)
+│   ├── Main Screen View (Cashier / POS UI)
+│   ├── Secondary Screen View (Customer Display UI)
+│   ├── SecondScreenListenerMixin (State mixin for reactive events)
+│   ├── SecondScreenEventListener (Callback-based event listener widget)
+│   └── SecondScreenEventBuilder (Builder widget reacting to stream events)
+│
+├── 🎯 Unified Facade (Public API Entry Point)
+│   └── FlutterSecondScreen (Singleton & factory for all operations)
+│
+├── 🧠 Domain Layer (Pure Dart Business Logic - Zero External Dependencies)
+│   ├── 📦 Entities
+│   │   ├── ScreenDisplay (Display ID, resolution, position offset, isPrimary)
+│   │   ├── SecondScreenEvent<T> (Cross-screen typed messaging model)
+│   │   ├── SecondScreenConfig (Secondary window title, size, position, flags)
+│   │   └── SecondScreenStatus (Window lifecycle state)
+│   │
+│   ├── ⚙️ Use Cases (Single Responsibility)
+│   │   ├── Display Management
+│   │   │   ├── GetDisplaysUseCase
+│   │   │   └── IsSecondaryDisplayAvailableUseCase
+│   │   ├── Window Lifecycle
+│   │   │   ├── InitSecondaryDisplayUseCase
+│   │   │   ├── OpenSecondaryScreenUseCase
+│   │   │   ├── CloseSecondaryScreenUseCase
+│   │   │   └── IsSecondaryScreenOpenUseCase
+│   │   └── Cross-Screen Messaging
+│   │       ├── SendEventToSecondaryUseCase
+│   │       ├── SendEventToMainUseCase
+│   │       └── ListenSecondaryScreenEventsUseCase
+│   │
+│   └── 📋 Repository Contracts (Interface Segregation)
+│       ├── SecondScreenDisplayManager (Display detection contract)
+│       ├── SecondScreenWindowManager (Window lifecycle contract)
+│       ├── SecondScreenMessenger (Cross-screen messaging contract)
+│       └── SecondScreenRepository (Aggregated domain interface)
+│
+└── 💾 Data Layer (Infrastructure & Platform Implementations)
+    ├── 🔄 Repository Implementation
+    │   └── SecondScreenRepositoryImpl (Implements Domain Repository via DIP)
+    │
+    ├── 📦 Data Models (Adapters & Serialization)
+    │   ├── ScreenDisplayModel (Adapts platform displays to domain entities)
+    │   └── SecondScreenEventModel (JSON serialization for cross-screen events)
+    │
+    └── 🔌 Platform Data Sources (Platform Interface Pattern)
+        └── SecondScreenPlatform (Federated platform interface)
+            ├── DesktopSecondScreenPlatform (Windows & macOS multi-window core)
+            │   ├── WindowsSecondScreenPlatform (Windows desktop plugin class)
+            │   └── MacosSecondScreenPlatform (macOS desktop plugin class)
+            ├── AndroidSecondScreenPlatform (Android Presentation API blueprint)
+            └── IosSecondScreenPlatform (iOS UIScreen & UIWindow blueprint)
+```
+
+### 📂 Codebase File & Folder Structure
+
+```text
+lib/
+├── flutter_second_screen.dart             # Public export library entrypoint
+└── src/
+    ├── flutter_second_screen.dart         # FlutterSecondScreen facade class
+    ├── presentation/                      # Presentation Layer
+    │   ├── presentation.dart
+    │   ├── mixins/
+    │   │   └── second_screen_listener_mixin.dart
+    │   └── widgets/
+    │       └── second_screen_event_listener.dart
+    ├── domain/                            # Domain Layer (Pure Dart)
+    │   ├── domain.dart
+    │   ├── entities/
+    │   │   ├── entities.dart
+    │   │   ├── screen_display.dart
+    │   │   ├── second_screen_config.dart
+    │   │   ├── second_screen_event.dart
+    │   │   └── second_screen_status.dart
+    │   ├── repositories/
+    │   │   ├── repositories.dart
+    │   │   ├── second_screen_display_manager.dart
+    │   │   ├── second_screen_window_manager.dart
+    │   │   ├── second_screen_messenger.dart
+    │   │   └── second_screen_repository.dart
+    │   └── usecases/
+    │       ├── usecases.dart
+    │       ├── get_displays_usecase.dart
+    │       ├── is_secondary_display_available_usecase.dart
+    │       ├── init_secondary_display_usecase.dart
+    │       ├── open_secondary_screen_usecase.dart
+    │       ├── close_secondary_screen_usecase.dart
+    │       ├── is_secondary_screen_open_usecase.dart
+    │       ├── send_event_to_secondary_usecase.dart
+    │       ├── send_event_to_main_usecase.dart
+    │       └── listen_secondary_screen_events_usecase.dart
+    └── data/                              # Data Layer
+        ├── data.dart
+        ├── datasources/
+        │   ├── datasources.dart
+        │   ├── second_screen_platform.dart
+        │   ├── desktop_second_screen_platform.dart
+        │   ├── windows_second_screen_platform.dart
+        │   ├── macos_second_screen_platform.dart
+        │   ├── android_second_screen_platform.dart
+        │   └── ios_second_screen_platform.dart
+        ├── models/
+        │   ├── models.dart
+        │   ├── screen_display_model.dart
+        │   └── second_screen_event_model.dart
+        └── repositories/
+            ├── repositories.dart
+            └── second_screen_repository_impl.dart
+```
+
+### 🔄 Data & Control Flow Diagram
+
 ```mermaid
-graph TD
-    subgraph UI ["Presentation Layer"]
+flowchart TD
+    subgraph UI ["Presentation Layer (Flutter UI)"]
         ScreenA["Main Screen View"]
         ScreenB["Secondary Screen View"]
         Mixin["SecondScreenListenerMixin"]
@@ -42,34 +161,36 @@ graph TD
     end
 
     subgraph Domain ["Domain Layer (Pure Dart)"]
-        DM["SecondScreenDisplayManager"]
-        WM["SecondScreenWindowManager"]
-        MS["SecondScreenMessenger"]
-        Repo["SecondScreenRepository"]
+        direction TB
         UseCases["Use Cases (Open, Close, Init, SendEvent, etc.)"]
+        Contracts["Repository Contracts (DisplayManager, WindowManager, Messenger)"]
         Entities["Entities (ScreenDisplay, SecondScreenEvent, SecondScreenConfig)"]
+        UseCases --> Contracts
+        UseCases -.-> Entities
     end
 
     subgraph Data ["Data Layer"]
         RepoImpl["SecondScreenRepositoryImpl"]
         PI["SecondScreenPlatform (Interface)"]
-        DeskPlat["DesktopSecondScreenPlatform"]
-        WinPlat["WindowsSecondScreenPlatform"]
-        MacPlat["MacosSecondScreenPlatform"]
-        AndPlat["AndroidSecondScreenPlatform (TODO / Blueprint)"]
-        IosPlat["IosSecondScreenPlatform (TODO / Blueprint)"]
+        
+        subgraph Implementations ["Platform Drivers"]
+            DeskPlat["DesktopSecondScreenPlatform"]
+            WinPlat["WindowsSecondScreenPlatform"]
+            MacPlat["MacosSecondScreenPlatform"]
+            AndPlat["AndroidSecondScreenPlatform (Blueprint)"]
+            IosPlat["IosSecondScreenPlatform (Blueprint)"]
+        end
     end
 
     UI --> Facade
     Facade --> UseCases
-    UseCases --> Repo
-    RepoImpl -.-> Repo
+    RepoImpl -.->|implements (DIP)| Contracts
     RepoImpl --> PI
-    PI <|-- DeskPlat
-    DeskPlat <|-- WinPlat
-    DeskPlat <|-- MacPlat
-    PI <|-- AndPlat
-    PI <|-- IosPlat
+    PI --> DeskPlat
+    DeskPlat --> WinPlat
+    DeskPlat --> MacPlat
+    PI --> AndPlat
+    PI --> IosPlat
 ```
 
 ### SOLID Principles Applied:
@@ -226,7 +347,6 @@ SecondScreenEventListener(
 The package includes comprehensive unit and widget tests covering all entities, use cases, repository implementations, mixins, and platform interfaces:
 
 ```bash
-cd packages/flutter_second_screen
 flutter test
 ```
 
@@ -238,4 +358,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🌟 Support
 
-If you find this package helpful, please consider giving it a ⭐ on [GitHub](https://github.com/yusufhnf/dart_json_schema_prompt) and a 👍 on [pub.dev](https://pub.dev/packages/dart_json_schema_prompt)!
+If you find this package helpful, please consider giving it a ⭐ on [GitHub](https://github.com/yusufhnf/flutter_second_screen) and a 👍 on [pub.dev](https://pub.dev/packages/flutter_second_screen)!
