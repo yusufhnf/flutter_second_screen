@@ -29,7 +29,7 @@ class FlutterSecondScreen implements SecondScreenRepository {
 
   /// Ensures native windowing and platform hooks are initialized before accessing windows.
   ///
-  /// Call this at the start of your application's `main` entrypoint function:
+  /// Call this at the start of your application `main()` entrypoint:
   /// ```dart
   /// void main(List<String> args) async {
   ///   WidgetsFlutterBinding.ensureInitialized();

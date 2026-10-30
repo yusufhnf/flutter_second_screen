@@ -12,10 +12,6 @@ build/
 .Spotlight-V100
 .Trashes
 
-# Documentation
-doc/
-doc/api/
-
 # IDE / Editor
 .idea/
 *.iml
