@@ -16,7 +16,8 @@ class ScreenDisplayModel extends ScreenDisplay {
   });
 
   /// Factory constructor to convert from `screen_retriever`'s [sr.Display].
-  factory ScreenDisplayModel.fromScreenRetriever(sr.Display display, int id, {bool isPrimary = false}) {
+  factory ScreenDisplayModel.fromScreenRetriever(sr.Display display, int id,
+      {bool isPrimary = false}) {
     return ScreenDisplayModel(
       id: id,
       name: display.name ?? 'Display $id',
@@ -50,12 +51,13 @@ class ScreenDisplayModel extends ScreenDisplay {
         (map['width'] as num?)?.toDouble() ?? 0.0,
         (map['height'] as num?)?.toDouble() ?? 0.0,
       ),
-      visibleSize: map.containsKey('visibleWidth') && map.containsKey('visibleHeight')
-          ? Size(
-              (map['visibleWidth'] as num?)?.toDouble() ?? 0.0,
-              (map['visibleHeight'] as num?)?.toDouble() ?? 0.0,
-            )
-          : null,
+      visibleSize:
+          map.containsKey('visibleWidth') && map.containsKey('visibleHeight')
+              ? Size(
+                  (map['visibleWidth'] as num?)?.toDouble() ?? 0.0,
+                  (map['visibleHeight'] as num?)?.toDouble() ?? 0.0,
+                )
+              : null,
       position: map.containsKey('x') && map.containsKey('y')
           ? Offset(
               (map['x'] as num?)?.toDouble() ?? 0.0,
@@ -85,4 +87,3 @@ class ScreenDisplayModel extends ScreenDisplay {
     };
   }
 }
-

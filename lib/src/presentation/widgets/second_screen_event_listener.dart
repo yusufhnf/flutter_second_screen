@@ -135,4 +135,3 @@ class _SecondScreenEventBuilderState<T>
     return widget.builder(context, _data);
   }
 }
-

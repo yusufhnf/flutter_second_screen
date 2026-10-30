@@ -14,8 +14,10 @@ void main() {
     });
 
     test('exposes channels and stub methods returning safe defaults', () async {
-      expect(platform.methodChannel.name, 'com.meetucup.flutter_second_screen/android_methods');
-      expect(platform.eventChannel.name, 'com.meetucup.flutter_second_screen/android_events');
+      expect(platform.methodChannel.name,
+          'com.meetucup.flutter_second_screen/android_methods');
+      expect(platform.eventChannel.name,
+          'com.meetucup.flutter_second_screen/android_events');
 
       expect(await platform.initSecondaryDisplay(), isFalse);
       expect(await platform.isSecondaryScreenOpen(), isFalse);
@@ -31,4 +33,3 @@ void main() {
     });
   });
 }
-

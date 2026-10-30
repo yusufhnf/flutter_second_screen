@@ -11,4 +11,3 @@ class GetDisplaysUseCase {
     return _displayManager.getDisplays();
   }
 }
-

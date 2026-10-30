@@ -29,7 +29,8 @@ class TestPlatform extends SecondScreenPlatform {
   Future<bool> initSecondaryDisplay([SecondScreenConfig? config]) async => true;
 
   @override
-  Future<void> openSecondaryScreen({List<String> arguments = const ['second-screen']}) async {}
+  Future<void> openSecondaryScreen(
+      {List<String> arguments = const ['second-screen']}) async {}
 
   @override
   Future<void> closeSecondaryScreen() async {}
@@ -50,7 +51,8 @@ class TestPlatform extends SecondScreenPlatform {
   Future<List<ScreenDisplay>> getDisplays() async => mockDisplays;
 
   @override
-  Future<void> sendEvent(String eventName, dynamic data, {int? targetWindowId}) async {
+  Future<void> sendEvent(String eventName, dynamic data,
+      {int? targetWindowId}) async {
     sentEventName = eventName;
     sentData = data;
     sentTargetWindowId = targetWindowId;
@@ -78,7 +80,8 @@ void main() {
   group('SecondScreenRepositoryImpl - Display queries', () {
     test('returns displays and handles primary/secondary lookups', () async {
       platform.mockDisplays = [
-        const ScreenDisplay(id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
+        const ScreenDisplay(
+            id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
         const ScreenDisplay(id: 1, name: 'Secondary', size: Size(1920, 1080)),
       ];
 
@@ -97,7 +100,8 @@ void main() {
 
     test('returns null when secondary display is not available', () async {
       platform.mockDisplays = [
-        const ScreenDisplay(id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
+        const ScreenDisplay(
+            id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
       ];
 
       final secondary = await repo.getSecondaryDisplay();
@@ -167,4 +171,3 @@ void main() {
     });
   });
 }
-

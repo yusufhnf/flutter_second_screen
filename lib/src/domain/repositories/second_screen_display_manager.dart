@@ -14,4 +14,3 @@ abstract interface class SecondScreenDisplayManager {
   /// Returns true if at least two physical displays are connected.
   Future<bool> hasSecondaryDisplay();
 }
-

@@ -10,4 +10,3 @@ class OpenSecondaryScreenUseCase {
     return _windowManager.openSecondaryScreen(arguments: arguments);
   }
 }
-

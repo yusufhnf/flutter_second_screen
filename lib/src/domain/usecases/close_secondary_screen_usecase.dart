@@ -10,4 +10,3 @@ class CloseSecondaryScreenUseCase {
     return _windowManager.closeSecondaryScreen();
   }
 }
-

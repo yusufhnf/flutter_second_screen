@@ -53,7 +53,8 @@ abstract class SecondScreenPlatform extends PlatformInterface {
   Future<bool> initSecondaryDisplay([SecondScreenConfig? config]);
 
   /// Opens the secondary screen window or external display presentation.
-  Future<void> openSecondaryScreen({List<String> arguments = const ['second-screen']});
+  Future<void> openSecondaryScreen(
+      {List<String> arguments = const ['second-screen']});
 
   /// Closes the secondary screen window or presentation.
   Future<void> closeSecondaryScreen();

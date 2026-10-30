@@ -19,7 +19,8 @@ class FlutterSecondScreen implements SecondScreenRepository {
   static FlutterSecondScreen? _instance;
 
   /// Global singleton instance.
-  static FlutterSecondScreen get instance => _instance ??= FlutterSecondScreen();
+  static FlutterSecondScreen get instance =>
+      _instance ??= FlutterSecondScreen();
 
   /// Sets or overrides the singleton instance (e.g. for testing).
   static set instance(FlutterSecondScreen customInstance) {
@@ -28,7 +29,7 @@ class FlutterSecondScreen implements SecondScreenRepository {
 
   /// Ensures native windowing and platform hooks are initialized before accessing windows.
   ///
-  /// Call this at the start of [main]:
+  /// Call this at the start of your application's `main` entrypoint function:
   /// ```dart
   /// void main(List<String> args) async {
   ///   WidgetsFlutterBinding.ensureInitialized();
@@ -42,11 +43,13 @@ class FlutterSecondScreen implements SecondScreenRepository {
   /// Helper to check if the current launch process is running as the secondary screen.
   ///
   /// Checks whether [args] contains [flag] (defaults to `'second-screen'`).
-  static bool isSecondaryScreen(List<String> args, {String flag = 'second-screen'}) =>
+  static bool isSecondaryScreen(List<String> args,
+          {String flag = 'second-screen'}) =>
       args.contains(flag);
 
   /// Helper to check if the current launch process is running as the primary/main screen.
-  static bool isMainScreen(List<String> args, {String flag = 'second-screen'}) =>
+  static bool isMainScreen(List<String> args,
+          {String flag = 'second-screen'}) =>
       !args.contains(flag);
 
   /// Extracts the integer window ID from launch [args], defaulting to `0` for the primary window.
@@ -62,9 +65,11 @@ class FlutterSecondScreen implements SecondScreenRepository {
   late final SendEventToSecondaryUseCase sendEventToSecondaryUseCase;
   late final SendEventToMainUseCase sendEventToMainUseCase;
   late final IsSecondaryScreenOpenUseCase isSecondaryScreenOpenUseCase;
-  late final IsSecondaryDisplayAvailableUseCase isSecondaryDisplayAvailableUseCase;
+  late final IsSecondaryDisplayAvailableUseCase
+      isSecondaryDisplayAvailableUseCase;
   late final GetDisplaysUseCase getDisplaysUseCase;
-  late final ListenSecondaryScreenEventsUseCase listenSecondaryScreenEventsUseCase;
+  late final ListenSecondaryScreenEventsUseCase
+      listenSecondaryScreenEventsUseCase;
 
   /// Creates a [FlutterSecondScreen] instance.
   ///
@@ -72,16 +77,19 @@ class FlutterSecondScreen implements SecondScreenRepository {
   FlutterSecondScreen({
     SecondScreenRepository? repository,
     SecondScreenPlatform? platform,
-  }) : _repository = repository ?? SecondScreenRepositoryImpl(platform: platform) {
+  }) : _repository =
+            repository ?? SecondScreenRepositoryImpl(platform: platform) {
     initSecondaryDisplayUseCase = InitSecondaryDisplayUseCase(_repository);
     openSecondaryScreenUseCase = OpenSecondaryScreenUseCase(_repository);
     closeSecondaryScreenUseCase = CloseSecondaryScreenUseCase(_repository);
     sendEventToSecondaryUseCase = SendEventToSecondaryUseCase(_repository);
     sendEventToMainUseCase = SendEventToMainUseCase(_repository);
     isSecondaryScreenOpenUseCase = IsSecondaryScreenOpenUseCase(_repository);
-    isSecondaryDisplayAvailableUseCase = IsSecondaryDisplayAvailableUseCase(_repository);
+    isSecondaryDisplayAvailableUseCase =
+        IsSecondaryDisplayAvailableUseCase(_repository);
     getDisplaysUseCase = GetDisplaysUseCase(_repository);
-    listenSecondaryScreenEventsUseCase = ListenSecondaryScreenEventsUseCase(_repository);
+    listenSecondaryScreenEventsUseCase =
+        ListenSecondaryScreenEventsUseCase(_repository);
   }
 
   /// Direct reference to the display manager interface.
@@ -102,7 +110,8 @@ class FlutterSecondScreen implements SecondScreenRepository {
   Future<ScreenDisplay?> getPrimaryDisplay() => _repository.getPrimaryDisplay();
 
   @override
-  Future<ScreenDisplay?> getSecondaryDisplay() => _repository.getSecondaryDisplay();
+  Future<ScreenDisplay?> getSecondaryDisplay() =>
+      _repository.getSecondaryDisplay();
 
   @override
   Future<bool> hasSecondaryDisplay() => _repository.hasSecondaryDisplay();
@@ -175,4 +184,3 @@ class FlutterSecondScreen implements SecondScreenRepository {
   ) =>
       _repository.removeEventListener(eventName, listener);
 }
-

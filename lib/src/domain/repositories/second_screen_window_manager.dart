@@ -12,7 +12,8 @@ abstract interface class SecondScreenWindowManager {
   /// and the secondary screen window is not already open.
   ///
   /// [arguments] contains CLI/process parameters passed to the secondary window.
-  Future<void> openSecondaryScreen({List<String> arguments = const ['second-screen']});
+  Future<void> openSecondaryScreen(
+      {List<String> arguments = const ['second-screen']});
 
   /// Closes the secondary screen window.
   Future<void> closeSecondaryScreen();
@@ -30,4 +31,3 @@ abstract interface class SecondScreenWindowManager {
   /// (i.e. secondary display is connected and window is not yet opened).
   Future<bool> isSecondaryDisplayAvailable();
 }
-

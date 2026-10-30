@@ -52,4 +52,3 @@ class SecondScreenEventModel<T> extends SecondScreenEvent<T> {
     );
   }
 }
-

@@ -22,7 +22,8 @@ void main() {
       expect(display.isPrimary, isFalse);
     });
 
-    test('falls back to size and Offset.zero when visible metrics are null', () {
+    test('falls back to size and Offset.zero when visible metrics are null',
+        () {
       const display = ScreenDisplay(
         id: 0,
         name: 'Primary Monitor',
@@ -120,7 +121,8 @@ void main() {
 
     test('supports copyWith', () {
       const config = SecondScreenConfig(title: 'Default');
-      final updated = config.copyWith(title: 'Updated', fullScreen: false, alwaysOnTop: true);
+      final updated = config.copyWith(
+          title: 'Updated', fullScreen: false, alwaysOnTop: true);
 
       expect(updated.title, 'Updated');
       expect(updated.fullScreen, isFalse);
@@ -130,9 +132,11 @@ void main() {
   });
 
   group('FlutterSecondScreen Static Helpers', () {
-    test('isSecondaryScreen and isMainScreen correctly identify launch mode', () {
+    test('isSecondaryScreen and isMainScreen correctly identify launch mode',
+        () {
       expect(FlutterSecondScreen.isSecondaryScreen(['second-screen']), isTrue);
-      expect(FlutterSecondScreen.isSecondaryScreen(['1', 'second-screen']), isTrue);
+      expect(FlutterSecondScreen.isSecondaryScreen(['1', 'second-screen']),
+          isTrue);
       expect(FlutterSecondScreen.isSecondaryScreen([]), isFalse);
       expect(FlutterSecondScreen.isMainScreen([]), isTrue);
       expect(FlutterSecondScreen.isMainScreen(['second-screen']), isFalse);
@@ -140,9 +144,9 @@ void main() {
 
     test('getWindowIdFromArgs parses window id or defaults to 0', () {
       expect(FlutterSecondScreen.getWindowIdFromArgs([]), 0);
-      expect(FlutterSecondScreen.getWindowIdFromArgs(['1', 'second-screen']), 1);
+      expect(
+          FlutterSecondScreen.getWindowIdFromArgs(['1', 'second-screen']), 1);
       expect(FlutterSecondScreen.getWindowIdFromArgs(['invalid']), 0);
     });
   });
 }
-

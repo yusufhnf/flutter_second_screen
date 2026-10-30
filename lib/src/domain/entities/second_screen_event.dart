@@ -41,4 +41,3 @@ class SecondScreenEvent<T> {
   String toString() =>
       'SecondScreenEvent(name: $name, data: $data, from: $fromWindowId, to: $toWindowId)';
 }
-

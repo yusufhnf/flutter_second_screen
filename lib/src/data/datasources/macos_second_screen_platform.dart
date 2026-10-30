@@ -10,4 +10,3 @@ class MacosSecondScreenPlatform extends DesktopSecondScreenPlatform {
     SecondScreenPlatform.instance = MacosSecondScreenPlatform();
   }
 }
-

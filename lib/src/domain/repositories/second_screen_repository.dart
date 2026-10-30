@@ -9,4 +9,3 @@ abstract interface class SecondScreenRepository
         SecondScreenDisplayManager,
         SecondScreenWindowManager,
         SecondScreenMessenger {}
-

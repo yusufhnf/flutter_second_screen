@@ -67,4 +67,3 @@ class ScreenDisplay {
   String toString() =>
       'ScreenDisplay(id: $id, name: $name, size: $size, isPrimary: $isPrimary)';
 }
-

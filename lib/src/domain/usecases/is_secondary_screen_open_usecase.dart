@@ -10,4 +10,3 @@ class IsSecondaryScreenOpenUseCase {
     return _windowManager.isSecondaryScreenOpen();
   }
 }
-

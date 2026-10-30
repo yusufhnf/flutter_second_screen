@@ -18,7 +18,8 @@ class FakeSecondScreenRepository implements SecondScreenRepository {
   int? lastTargetWindowId;
 
   final List<ScreenDisplay> displays = [
-    const ScreenDisplay(id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
+    const ScreenDisplay(
+        id: 0, name: 'Main', size: Size(1920, 1080), isPrimary: true),
     const ScreenDisplay(id: 1, name: 'Secondary', size: Size(1920, 1080)),
   ];
 
@@ -30,7 +31,8 @@ class FakeSecondScreenRepository implements SecondScreenRepository {
   }
 
   @override
-  Future<void> openSecondaryScreen({List<String> arguments = const ['second-screen']}) async {
+  Future<void> openSecondaryScreen(
+      {List<String> arguments = const ['second-screen']}) async {
     openSecondaryScreenCalled = true;
     lastOpenArguments = arguments;
   }
@@ -54,7 +56,8 @@ class FakeSecondScreenRepository implements SecondScreenRepository {
   Future<bool> isSecondaryScreenOpen() async => isSecondaryScreenOpenValue;
 
   @override
-  Future<bool> isSecondaryDisplayAvailable() async => isSecondaryDisplayAvailableValue;
+  Future<bool> isSecondaryDisplayAvailable() async =>
+      isSecondaryDisplayAvailableValue;
 
   @override
   Future<List<ScreenDisplay>> getDisplays() async => displays;
@@ -83,7 +86,8 @@ class FakeSecondScreenRepository implements SecondScreenRepository {
   }
 
   @override
-  Future<void> sendEventToWindow(int windowId, String eventName, [dynamic data]) async {
+  Future<void> sendEventToWindow(int windowId, String eventName,
+      [dynamic data]) async {
     lastEventName = eventName;
     lastEventData = data;
     lastTargetWindowId = windowId;
@@ -96,10 +100,12 @@ class FakeSecondScreenRepository implements SecondScreenRepository {
   Stream<T?> on<T>(String eventName) => const Stream.empty();
 
   @override
-  void addEventListener(String eventName, void Function(dynamic data) listener) {}
+  void addEventListener(
+      String eventName, void Function(dynamic data) listener) {}
 
   @override
-  void removeEventListener(String eventName, void Function(dynamic data) listener) {}
+  void removeEventListener(
+      String eventName, void Function(dynamic data) listener) {}
 }
 
 void main() {
@@ -176,4 +182,3 @@ void main() {
     expect(result.first.name, 'Main');
   });
 }
-

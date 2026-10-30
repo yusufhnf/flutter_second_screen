@@ -10,4 +10,3 @@ class SendEventToSecondaryUseCase {
     return _messenger.sendEventToSecondary(eventName, data);
   }
 }
-

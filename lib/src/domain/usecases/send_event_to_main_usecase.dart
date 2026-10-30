@@ -10,4 +10,3 @@ class SendEventToMainUseCase {
     return _messenger.sendEventToMain(eventName, data);
   }
 }
-

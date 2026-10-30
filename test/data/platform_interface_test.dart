@@ -9,7 +9,8 @@ class MockPlatform extends SecondScreenPlatform {
   Future<bool> initSecondaryDisplay([SecondScreenConfig? config]) async => true;
 
   @override
-  Future<void> openSecondaryScreen({List<String> arguments = const ['second-screen']}) async {}
+  Future<void> openSecondaryScreen(
+      {List<String> arguments = const ['second-screen']}) async {}
 
   @override
   Future<void> closeSecondaryScreen() async {}
@@ -30,7 +31,8 @@ class MockPlatform extends SecondScreenPlatform {
   Future<List<ScreenDisplay>> getDisplays() async => [];
 
   @override
-  Future<void> sendEvent(String eventName, dynamic data, {int? targetWindowId}) async {}
+  Future<void> sendEvent(String eventName, dynamic data,
+      {int? targetWindowId}) async {}
 
   @override
   Stream<SecondScreenEvent<dynamic>> get eventStream => const Stream.empty();
@@ -46,4 +48,3 @@ void main() {
     expect(SecondScreenPlatform.instance, mock);
   });
 }
-

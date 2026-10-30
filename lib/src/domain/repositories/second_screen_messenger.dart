@@ -32,4 +32,3 @@ abstract interface class SecondScreenMessenger {
     void Function(dynamic data) listener,
   );
 }
-

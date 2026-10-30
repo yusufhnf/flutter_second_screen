@@ -7,4 +7,3 @@ export 'listen_secondary_screen_events_usecase.dart';
 export 'open_secondary_screen_usecase.dart';
 export 'send_event_to_main_usecase.dart';
 export 'send_event_to_secondary_usecase.dart';
-

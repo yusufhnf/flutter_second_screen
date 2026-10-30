@@ -10,7 +10,8 @@ mixin SecondScreenListenerMixin<T extends StatefulWidget> on State<T> {
 
   /// Override this getter if you wish to provide a custom or injected [SecondScreenMessenger].
   /// Defaults to the global [FlutterSecondScreen.instance] messenger.
-  SecondScreenMessenger get secondScreenMessenger => FlutterSecondScreen.instance;
+  SecondScreenMessenger get secondScreenMessenger =>
+      FlutterSecondScreen.instance;
 
   @override
   void initState() {
@@ -54,7 +55,8 @@ mixin SecondScreenListenerMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Dynamically subscribes to an additional event.
-  void subscribeToScreenEvent(String eventName, void Function(dynamic) callback) {
+  void subscribeToScreenEvent(
+      String eventName, void Function(dynamic) callback) {
     if (!_registeredListeners.containsKey(eventName)) {
       _registeredListeners[eventName] = callback;
       secondScreenMessenger.addEventListener(eventName, callback);
@@ -69,4 +71,3 @@ mixin SecondScreenListenerMixin<T extends StatefulWidget> on State<T> {
     }
   }
 }
-

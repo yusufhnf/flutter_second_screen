@@ -14,7 +14,8 @@ import 'second_screen_platform.dart';
 ///
 /// Manages multi-window lifecycle and multi-display detection using
 /// `window_manager_plus` and `screen_retriever`.
-class DesktopSecondScreenPlatform extends SecondScreenPlatform with WindowListener {
+class DesktopSecondScreenPlatform extends SecondScreenPlatform
+    with WindowListener {
   final StreamController<SecondScreenEvent<dynamic>> _eventController =
       StreamController<SecondScreenEvent<dynamic>>.broadcast();
 
@@ -63,14 +64,18 @@ class DesktopSecondScreenPlatform extends SecondScreenPlatform with WindowListen
         backgroundColor: effectiveConfig.backgroundColor,
         skipTaskbar: effectiveConfig.skipTaskbar,
         fullScreen: effectiveConfig.fullScreen,
-        size: effectiveConfig.size ?? secondDisplay.visibleSize ?? secondDisplay.size,
+        size: effectiveConfig.size ??
+            secondDisplay.visibleSize ??
+            secondDisplay.size,
         title: effectiveConfig.title,
         titleBarStyle: TitleBarStyle.normal,
       );
 
       await WindowManagerPlus.current.waitUntilReadyToShow(windowOptions);
       await WindowManagerPlus.current.setPosition(
-        effectiveConfig.position ?? secondDisplay.visiblePosition ?? Offset.zero,
+        effectiveConfig.position ??
+            secondDisplay.visiblePosition ??
+            Offset.zero,
       );
       if (effectiveConfig.maximize) {
         await WindowManagerPlus.current.maximize();
@@ -188,4 +193,3 @@ class DesktopSecondScreenPlatform extends SecondScreenPlatform with WindowListen
     await _eventController.close();
   }
 }
-

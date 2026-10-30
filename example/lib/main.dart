@@ -149,4 +149,3 @@ class _SecondaryScreenAppState extends State<SecondaryScreenApp>
     );
   }
 }
-

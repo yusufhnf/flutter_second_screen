@@ -17,4 +17,3 @@ class ListenSecondaryScreenEventsUseCase {
     return _messenger.on<T>(eventName);
   }
 }
-

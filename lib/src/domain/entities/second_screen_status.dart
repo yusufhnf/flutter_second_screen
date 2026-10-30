@@ -15,4 +15,3 @@ enum SecondScreenStatus {
   /// An error occurred during secondary screen initialization or operation.
   error,
 }
-

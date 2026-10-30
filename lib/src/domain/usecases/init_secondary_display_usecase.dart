@@ -11,4 +11,3 @@ class InitSecondaryDisplayUseCase {
     return _windowManager.initSecondaryDisplay(config);
   }
 }
-

@@ -47,7 +47,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
   Future<void> ensureInitialized([List<String> args = const []]) async {
     // TODO: Initialize iOS external display observer bridges if needed prior to runApp.
     //
-
   }
 
   void _initEventChannelListener() {
@@ -62,7 +61,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     //   }
     // });
     //
-
   }
 
   @override
@@ -94,7 +92,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     //    await _methodChannel.invokeMethod('openExternalWindow', {'arguments': arguments});
     // 2. Set window.screen = secondScreen, window.isHidden = false.
     //
-
   }
 
   @override
@@ -106,7 +103,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     //    await _methodChannel.invokeMethod('closeExternalWindow');
     // 2. Set window.isHidden = true, window = nil.
     //
-
   }
 
   @override
@@ -115,7 +111,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     //
     // Note: iOS external displays typically do not become the keyWindow unless specifically required.
     //
-
   }
 
   @override
@@ -126,7 +121,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     // 1. Invoke native method channel:
     //    await _methodChannel.invokeMethod('closeAllExternalWindows');
     //
-
   }
 
   @override
@@ -182,7 +176,6 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     //      'targetWindowId': targetWindowId ?? 1,
     //    });
     //
-
   }
 
   @override
@@ -192,4 +185,3 @@ class IosSecondScreenPlatform extends SecondScreenPlatform {
     await _eventController.close();
   }
 }
-

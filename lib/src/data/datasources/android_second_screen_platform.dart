@@ -45,7 +45,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
   Future<void> ensureInitialized([List<String> args = const []]) async {
     // TODO: Initialize Android Presentation channel bridges if needed prior to runApp.
     //
-
   }
 
   void _initEventChannelListener() {
@@ -60,7 +59,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     //   }
     // });
     //
-
   }
 
   @override
@@ -95,7 +93,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     //    await _methodChannel.invokeMethod('showPresentation', {'arguments': arguments});
     // 2. Handle Presentation lifecycle state changes.
     //
-
   }
 
   @override
@@ -107,7 +104,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     //    await _methodChannel.invokeMethod('dismissPresentation');
     // 2. Clean up secondary FlutterEngine resources if needed.
     //
-
   }
 
   @override
@@ -117,7 +113,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     // Note: Android Presentation displays typically do not take primary window focus
     // unless touch/input forwarding is explicitly configured.
     //
-
   }
 
   @override
@@ -128,7 +123,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     // 1. Invoke native method channel to dismiss all presentations:
     //    await _methodChannel.invokeMethod('dismissAllPresentations');
     //
-
   }
 
   @override
@@ -185,7 +179,6 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     //      'targetWindowId': targetWindowId ?? 1,
     //    });
     //
-
   }
 
   @override
@@ -195,4 +188,3 @@ class AndroidSecondScreenPlatform extends SecondScreenPlatform {
     await _eventController.close();
   }
 }
-

@@ -10,4 +10,3 @@ class IsSecondaryDisplayAvailableUseCase {
     return _windowManager.isSecondaryDisplayAvailable();
   }
 }
-

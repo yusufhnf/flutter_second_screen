@@ -161,4 +161,3 @@ class SecondScreenRepositoryImpl implements SecondScreenRepository {
     _listeners.clear();
   }
 }
-
