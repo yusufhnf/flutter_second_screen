@@ -1,6 +1,6 @@
 name: flutter_second_screen
 description: A clean architecture Flutter package for managing secondary screens and cross-screen communication on Windows and macOS desktop, with upcoming Android and iOS support.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/yusufhnf/flutter_second_screen
 repository: https://github.com/yusufhnf/flutter_second_screen
 issue_tracker: https://github.com/yusufhnf/flutter_second_screen/issues

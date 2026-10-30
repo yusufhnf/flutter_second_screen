@@ -1,3 +1,9 @@
+## 1.0.1
+
+- Clarified and enhanced Architecture Overview in `README.md` with hierarchical component and file structure trees.
+- Improved flowchart diagram syntax and structure for reliable rendering across all markdown viewers.
+- Refined documentation links and repository metadata.
+
 ## 1.0.0
 
 - Initial release of `flutter_second_screen`.
