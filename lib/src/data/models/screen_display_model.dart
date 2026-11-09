@@ -1,9 +1,8 @@
 import 'dart:ui';
-import 'package:screen_retriever/screen_retriever.dart' as sr;
 
 import '../../domain/entities/screen_display.dart';
 
-/// Data transfer model for [ScreenDisplay], adapting from external display sources.
+/// Data transfer model for [ScreenDisplay], adapting from native display sources.
 class ScreenDisplayModel extends ScreenDisplay {
   const ScreenDisplayModel({
     required super.id,
@@ -14,20 +13,6 @@ class ScreenDisplayModel extends ScreenDisplay {
     super.visiblePosition,
     super.isPrimary,
   });
-
-  /// Factory constructor to convert from `screen_retriever`'s [sr.Display].
-  factory ScreenDisplayModel.fromScreenRetriever(sr.Display display, int id,
-      {bool isPrimary = false}) {
-    return ScreenDisplayModel(
-      id: id,
-      name: display.name ?? 'Display $id',
-      size: display.size,
-      visibleSize: display.visibleSize,
-      position: display.visiblePosition,
-      visiblePosition: display.visiblePosition,
-      isPrimary: isPrimary,
-    );
-  }
 
   /// Converts this model to a domain [ScreenDisplay] entity.
   ScreenDisplay toEntity() {
@@ -43,6 +28,9 @@ class ScreenDisplayModel extends ScreenDisplay {
   }
 
   /// Deserializes a map representation to [ScreenDisplayModel].
+  ///
+  /// This is the format returned by the native desktop plugin, where all
+  /// values are logical pixels relative to the top-left of the primary display.
   factory ScreenDisplayModel.fromMap(Map<String, dynamic> map) {
     return ScreenDisplayModel(
       id: map['id'] as int? ?? 0,
@@ -64,6 +52,13 @@ class ScreenDisplayModel extends ScreenDisplay {
               (map['y'] as num?)?.toDouble() ?? 0.0,
             )
           : null,
+      visiblePosition:
+          map.containsKey('visibleX') && map.containsKey('visibleY')
+              ? Offset(
+                  (map['visibleX'] as num?)?.toDouble() ?? 0.0,
+                  (map['visibleY'] as num?)?.toDouble() ?? 0.0,
+                )
+              : null,
       isPrimary: map['isPrimary'] as bool? ?? false,
     );
   }
@@ -82,6 +77,10 @@ class ScreenDisplayModel extends ScreenDisplay {
       if (position != null) ...{
         'x': position!.dx,
         'y': position!.dy,
+      },
+      if (visiblePosition != null) ...{
+        'visibleX': visiblePosition!.dx,
+        'visibleY': visiblePosition!.dy,
       },
       'isPrimary': isPrimary,
     };

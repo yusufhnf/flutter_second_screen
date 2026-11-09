@@ -1,28 +1,331 @@
 # Flutter Second Screen
 
-A production-grade, Clean Architecture Flutter package for managing secondary screens, dual displays, and cross-screen communication. Currently available for **Windows Desktop**, with architectural blueprints and upcoming native support for **Android** and **iOS**.
+A Clean Architecture Flutter package for secondary screens, dual displays, and cross-screen communication — built for customer-facing displays, POS terminals, kiosks, and presenter views. Available today on **macOS** and **Windows**, with architectural blueprints for upcoming **Android** and **iOS** support.
+
+No third-party window or display packages: secondary windows, display detection, and messaging are handled by the package's own native plugin.
 
 ---
 
 ## 🌟 Key Features
 
-- **Multi-Display Detection**: Query physical monitors, detect primary vs. secondary displays, resolutions, and position offsets.
-- **Secondary Window Lifecycle**: Initialize, open, maximize, focus, and close secondary windows seamlessly.
-- **Bi-Directional Messaging**: Typed or event-based cross-screen event bus to transfer cart data, signatures, advertisements, or status updates between windows.
-- **Clean Architecture & SOLID**: Strict separation of concerns (Domain, Data, Presentation) with dependency inversion, interface segregation, and platform interface extensibility.
-- **Developer-Friendly Mixin & Widgets**: Use `SecondScreenListenerMixin`, `SecondScreenEventListener`, or `SecondScreenEventBuilder` for reactive UI updates without boilerplate.
-- **Multi-Platform Blueprint**: Built on Flutter's `PlatformInterface` standard with pluggable platform classes and documented TODO blueprints for Android Presentation API and iOS external UIScreen.
+- **Multi-Display Detection**: List connected monitors with name, size, usable area, position, and primary flag. Plugging in a monitor is picked up on the next call.
+- **Secondary Window Lifecycle**: Open, place, full-screen, focus, and close a secondary window on the second display.
+- **Bi-Directional Messaging**: Send cart data, signatures, ads, or status updates between windows with an event bus.
+- **One-Line Bootstrapping**: `FlutterSecondScreen.run` wires the main and secondary entry points for you.
+- **Developer-Friendly Widgets**: `SecondScreenListenerMixin`, `SecondScreenEventListener`, and `SecondScreenEventBuilder` for reactive UI updates without boilerplate.
+- **Clean Architecture & SOLID**: Domain, Data, and Presentation layers with dependency inversion and a pluggable `PlatformInterface`.
 
 ---
 
 ## 🖥 Platform Support
 
-| Platform | Support Status | Underlying Mechanism |
+| Platform | Status | Mechanism |
 | :--- | :---: | :--- |
-| **Windows Desktop / macOS** | ✅ **Available** | `window_manager_plus` + `screen_retriever` multi-window |
-| **Android** | ⏳ *In Development* | `android.app.Presentation` + `DisplayManager` |
-| **iOS** | ⏳ *In Development* | `UIScreen` external displays + `UIWindow` |
-| **Linux** | 📋 *Planned* | Desktop multi-window & display retriever |
+| **macOS** | ✅ Available | Built-in AppKit plugin, one Flutter engine per window |
+| **Windows** | ✅ Available | Built-in Win32 plugin, one Flutter engine per window |
+| **Android** | ⏳ In development | `android.app.Presentation` + `DisplayManager` |
+| **iOS** | ⏳ In development | `UIScreen` external displays + `UIWindow` |
+| **Linux** | 📋 Planned | Desktop multi-window & display detection |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Add the dependency
+
+```yaml
+dependencies:
+  flutter_second_screen: ^1.0.0
+```
+
+### 2. Platform setup (one time)
+
+Each secondary window runs its own Flutter engine. Tell the plugin how to register your app's plugins on those engines — this is the only native change required.
+
+<details open>
+<summary><b>macOS</b> — <code>macos/Runner/MainFlutterWindow.swift</code></summary>
+
+```swift
+import Cocoa
+import FlutterMacOS
+import flutter_second_screen
+
+class MainFlutterWindow: NSWindow {
+  override func awakeFromNib() {
+    let flutterViewController = FlutterViewController()
+    let windowFrame = self.frame
+    self.contentViewController = flutterViewController
+    self.setFrame(windowFrame, display: true)
+
+    RegisterGeneratedPlugins(registry: flutterViewController)
+    // Register plugins on every secondary window engine as well.
+    FlutterSecondScreenPlugin.registerGeneratedPlugins = { registry in
+      RegisterGeneratedPlugins(registry: registry)
+    }
+
+    super.awakeFromNib()
+  }
+}
+```
+
+</details>
+
+<details open>
+<summary><b>Windows</b> — <code>windows/runner/flutter_window.cpp</code></summary>
+
+```cpp
+#include <flutter_second_screen/flutter_second_screen_plugin_c_api.h>
+
+#include "flutter/generated_plugin_registrant.h"
+
+bool FlutterWindow::OnCreate() {
+  // ...
+  RegisterPlugins(flutter_controller_->engine());
+  // Register plugins on every secondary window engine as well.
+  FlutterSecondScreenPluginSetRegisterPluginsCallback(
+      [](FlutterDesktopEngineRef engine) {
+        flutter_second_screen::EnginePluginRegistry registry(engine);
+        RegisterPlugins(&registry);
+      });
+  // ...
+}
+```
+
+</details>
+
+After changing native files, do a full rebuild (not a hot restart).
+
+### 3. Entry point
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_second_screen/flutter_second_screen.dart';
+
+void main(List<String> args) => FlutterSecondScreen.run(
+      args,
+      mainApp: () => const CashierApp(),
+      secondaryApp: () => const CustomerDisplayApp(),
+      config: const SecondScreenConfig(title: 'Customer Display'),
+    );
+```
+
+`run` initializes the binding and the plugin, then:
+- in the **main window**, runs `mainApp`;
+- in the **secondary window**, places the window on the second display using `config` and runs `secondaryApp`. If no second display is connected, the secondary window closes itself.
+
+Need setup before `runApp` (dependency injection, storage, ...)? Use `beforeRunApp`:
+
+```dart
+void main(List<String> args) => FlutterSecondScreen.run(
+      args,
+      beforeRunApp: (isSecondary) async {
+        await configureDependencies();
+      },
+      mainApp: () => const CashierApp(),
+      secondaryApp: () => const CustomerDisplayApp(),
+    );
+```
+
+<details>
+<summary>Manual entry point (without <code>run</code>)</summary>
+
+```dart
+void main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterSecondScreen.ensureInitialized(args);
+
+  if (FlutterSecondScreen.isSecondaryScreen(args)) {
+    final initialized = await FlutterSecondScreen.instance.initSecondaryDisplay(
+      const SecondScreenConfig(title: 'Customer Display'),
+    );
+    if (initialized) runApp(const CustomerDisplayApp());
+  } else {
+    runApp(const CashierApp());
+  }
+}
+```
+
+</details>
+
+### 4. Open the secondary screen
+
+```dart
+final secondScreen = FlutterSecondScreen.instance;
+
+if (await secondScreen.isSecondaryDisplayAvailable()) {
+  await secondScreen.openSecondaryScreen();
+}
+```
+
+A complete, runnable app lives in [`example/`](example/lib/main.dart) (`cd example && flutter run -d macos` or `-d windows`).
+
+---
+
+## 💡 Usage
+
+### Detecting displays
+
+```dart
+final secondScreen = FlutterSecondScreen.instance;
+
+final displays = await secondScreen.getDisplays();     // primary first
+final primary = await secondScreen.getPrimaryDisplay();
+final secondary = await secondScreen.getSecondaryDisplay(); // null if none
+final hasSecond = await secondScreen.hasSecondaryDisplay();
+
+for (final display in displays) {
+  print('${display.name}: ${display.size} at ${display.position}'
+      ' (usable ${display.visibleSize} at ${display.visiblePosition})');
+}
+```
+
+All values are logical pixels, measured from the top-left corner of the primary display. Displays are read fresh on every call.
+
+### Sending events between screens
+
+```dart
+// Main → secondary
+await secondScreen.sendEventToSecondary('cartUpdate', {
+  'items': [
+    {'name': 'Sneakers', 'price': 89.99},
+  ],
+  'total': 89.99,
+});
+
+// Secondary → main
+await secondScreen.sendEventToMain('signatureApproved', signatureData);
+```
+
+Payloads can be any value supported by Flutter's standard message codec (`null`, `bool`, `num`, `String`, `List`, `Map`, typed data). Sending to a window that isn't open is a no-op, so you don't need to check `isSecondaryScreenOpen()` before every update.
+
+### Listening with `SecondScreenListenerMixin`
+
+```dart
+class _CustomerDisplayState extends State<CustomerDisplay>
+    with SecondScreenListenerMixin {
+  Map<String, dynamic>? cart;
+
+  @override
+  Map<String, void Function(dynamic)> getSecondScreenEventListeners() => {
+        'cartUpdate': (data) => setState(() => cart = Map.from(data as Map)),
+        'reset': (_) => setState(() => cart = null),
+      };
+
+  @override
+  Widget build(BuildContext context) => cart == null
+      ? const Center(child: Text('Welcome!'))
+      : Text('Total: \$${cart!['total']}');
+}
+```
+
+The mixin also provides `sendEventToSecondaryScreen` and `sendEventToMainScreen`.
+
+### Listening with widgets
+
+```dart
+// Side effects
+SecondScreenEventListener(
+  eventName: 'cartUpdate',
+  onEvent: (data) => debugPrint('Cart: $data'),
+  child: const CartView(),
+);
+
+// Rebuild on each event
+SecondScreenEventBuilder<Map<dynamic, dynamic>>(
+  eventName: 'cartUpdate',
+  builder: (context, cart) => Text('Items: ${cart?['items']?.length ?? 0}'),
+);
+```
+
+### Listening with streams
+
+```dart
+secondScreen.on<String>('signatureApproved').listen((signature) { ... });
+secondScreen.eventStream.listen((event) => print('${event.name} from ${event.fromWindowId}'));
+```
+
+### Window control
+
+```dart
+await secondScreen.isSecondaryScreenOpen();
+await secondScreen.focusSecondaryScreen();
+await secondScreen.closeSecondaryScreen();
+await secondScreen.closeAllScreens(); // closes every window, including main
+```
+
+### Handling errors
+
+```dart
+try {
+  await secondScreen.openSecondaryScreen();
+} on SecondScreenException catch (e) {
+  if (e.code == SecondScreenException.setupRequired) {
+    // The platform setup step is missing in the app runner.
+  }
+  debugPrint(e.message);
+}
+```
+
+---
+
+## 📚 API Reference
+
+### `FlutterSecondScreen`
+
+| Member | Description |
+| :--- | :--- |
+| `FlutterSecondScreen.run(args, mainApp:, secondaryApp:, config:, beforeRunApp:)` | Boots the right app for the current window. |
+| `FlutterSecondScreen.ensureInitialized(args)` | Binds this engine to its window. Optional; `run` calls it for you. |
+| `FlutterSecondScreen.isSecondaryScreen(args)` / `isMainScreen(args)` | Whether this engine was launched as the secondary window. |
+| `FlutterSecondScreen.instance` | Singleton facade for all operations below. |
+| `getDisplays()` / `getPrimaryDisplay()` / `getSecondaryDisplay()` / `hasSecondaryDisplay()` | Display detection. |
+| `isSecondaryDisplayAvailable()` | A second display exists **and** the secondary window is not open. |
+| `openSecondaryScreen({arguments})` | Creates the secondary window. Throws `SecondScreenException` if setup is missing. |
+| `initSecondaryDisplay([config])` | Called **in the secondary window** to place and show it. Returns `false` (and closes the window) without a second display. |
+| `isSecondaryScreenOpen()` / `focusSecondaryScreen()` / `closeSecondaryScreen()` / `closeAllScreens()` | Window lifecycle. |
+| `sendEventToSecondary(name, [data])` / `sendEventToMain(name, [data])` / `sendEventToWindow(id, name, [data])` | Messaging. |
+| `eventStream` / `on<T>(name)` / `addEventListener` / `removeEventListener` | Receiving events. |
+
+Window IDs: the main window is `0`, the secondary window is `1`.
+
+### `SecondScreenConfig`
+
+| Option | Default | Description |
+| :--- | :--- | :--- |
+| `title` | `'Customer Display'` | Window title. |
+| `fullScreen` | `true` | macOS: native full screen. Windows: borderless window covering the display. |
+| `maximize` | `true` | Maximize on the target display. Ignored when `fullScreen` is `true`. |
+| `size` | second display's usable size | Window size in logical pixels. |
+| `position` | second display's usable top-left | Window position in logical pixels (top-left of the primary display is `0,0`). |
+| `center` | `true` | Center on the target display when no position can be resolved. |
+| `resizable` | `false` | Whether the user can resize the window. |
+| `alwaysOnTop` | `false` | Keep the window above other windows. |
+| `skipTaskbar` | `false` | Windows: hide the taskbar button. macOS: hides the app's Dock icon (app-wide). |
+| `backgroundColor` | transparent | Window background (macOS). |
+| `routeArguments` | `['second-screen']` | Informational; pass launch arguments to `openSecondaryScreen(arguments:)`. |
+
+---
+
+## 🩺 Troubleshooting
+
+| Symptom | Cause & fix |
+| :--- | :--- |
+| `SecondScreenException(setup-required)` when opening | The platform setup step is missing. Add it to `MainFlutterWindow.swift` / `flutter_window.cpp` and do a full rebuild. |
+| Secondary window never appears | Only one display is connected (`initSecondaryDisplay` returns `false` and closes the window), or the secondary entry point never calls `initSecondaryDisplay` (use `FlutterSecondScreen.run`). |
+| Plugin errors (`MissingPluginException`) inside the secondary window | The setup callback is missing, so other plugins are not registered on the secondary engine. |
+| Events not received | Both windows must listen/send with the same event name; the listener must be registered (e.g. mixin `State` is mounted) before the event arrives. |
+| `isSecondaryScreenOpen()` stays `true` | Closing is asynchronous; query again after the window has closed. |
+
+---
+
+## 🔄 Migrating from 1.0.x
+
+1.0.x depended on `window_manager_plus` and `screen_retriever`. Both are gone.
+
+1. Remove `WindowManagerPlusPlugin.RegisterGeneratedPlugins = ...` / `WindowManagerPlusPluginSetWindowCreatedCallback(...)` from your runner **unless your app still uses `window_manager_plus` directly**, and add the [platform setup](#2-platform-setup-one-time) above.
+2. On macOS, references to `WindowManagerPlusFlutterWindow` (e.g. in `AppDelegate.applicationShouldTerminateAfterLastWindowClosed`) no longer apply; secondary windows are plain `NSWindow`s.
+3. `ScreenDisplayModel.fromScreenRetriever` was removed; use `ScreenDisplayModel.fromMap` or the `ScreenDisplay` entities returned by `getDisplays()`.
+4. Optionally replace your `main()` with `FlutterSecondScreen.run`.
 
 ---
 
@@ -49,6 +352,7 @@ flutter_second_screen
 │   │   ├── ScreenDisplay (Display ID, resolution, position offset, isPrimary)
 │   │   ├── SecondScreenEvent<T> (Cross-screen typed messaging model)
 │   │   ├── SecondScreenConfig (Secondary window title, size, position, flags)
+│   │   ├── SecondScreenException (Typed setup / window errors)
 │   │   └── SecondScreenStatus (Window lifecycle state)
 │   │
 │   ├── ⚙️ Use Cases (Single Responsibility)
@@ -77,6 +381,7 @@ flutter_second_screen
     │
     ├── 📦 Data Models (Adapters & Serialization)
     │   ├── ScreenDisplayModel (Adapts platform displays to domain entities)
+    │   ├── SecondScreenConfigModel (Serializes window config for the native plugin)
     │   └── SecondScreenEventModel (JSON serialization for cross-screen events)
     │
     └── 🔌 Platform Data Sources (Platform Interface Pattern)
@@ -108,6 +413,7 @@ lib/
     │   │   ├── screen_display.dart
     │   │   ├── second_screen_config.dart
     │   │   ├── second_screen_event.dart
+    │   │   ├── second_screen_exception.dart
     │   │   └── second_screen_status.dart
     │   ├── repositories/
     │   │   ├── repositories.dart
@@ -139,10 +445,24 @@ lib/
         ├── models/
         │   ├── models.dart
         │   ├── screen_display_model.dart
+        │   ├── second_screen_config_model.dart
         │   └── second_screen_event_model.dart
         └── repositories/
             ├── repositories.dart
             └── second_screen_repository_impl.dart
+
+macos/                                     # Native macOS plugin (Swift, SPM + CocoaPods)
+├── flutter_second_screen.podspec
+└── flutter_second_screen/
+    ├── Package.swift
+    └── Sources/flutter_second_screen/
+        └── FlutterSecondScreenPlugin.swift
+windows/                                   # Native Windows plugin (C++)
+├── CMakeLists.txt
+├── include/flutter_second_screen/
+│   └── flutter_second_screen_plugin_c_api.h
+├── flutter_second_screen_plugin.{h,cpp}   # Channel handler, displays, window registry
+└── second_screen_window.{h,cpp}           # Win32 host window for secondary engines
 ```
 
 ### 🔄 Data & Control Flow Diagram
@@ -199,128 +519,6 @@ flowchart TD
 - **Liskov Substitution Principle (LSP)**: Any platform implementation (`WindowsSecondScreenPlatform`, `AndroidSecondScreenPlatform`, or test mocks) can be seamlessly substituted without breaking consumers.
 - **Interface Segregation Principle (ISP)**: Clients can depend solely on `SecondScreenDisplayManager`, `SecondScreenWindowManager`, or `SecondScreenMessenger` instead of one monolithic interface.
 - **Dependency Inversion Principle (DIP)**: High-level application modules depend on domain abstractions rather than concrete platform libraries.
-
----
-
-## 🚀 Getting Started
-
-### 1. Add Dependency
-
-In your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  flutter_second_screen: ^1.0.0
-```
-
-### 2. Main Entry Point Setup
-
-In your `main.dart`, handle the secondary screen entry point when the process is launched:
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_second_screen/flutter_second_screen.dart';
-
-void main(List<String> args) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await FlutterSecondScreen.ensureInitialized(args);
-
-  if (FlutterSecondScreen.isSecondaryScreen(args)) {
-    // Secondary screen process
-    final initialized = await FlutterSecondScreen.instance.initSecondaryDisplay(
-      const SecondScreenConfig(title: 'Customer Facing Display'),
-    );
-    if (initialized) {
-      runApp(const CustomerDisplayApp());
-    }
-  } else {
-    // Main cashier / POS application
-    runApp(const CashierMainApp());
-  }
-}
-```
-
----
-
-## 💡 Usage Examples
-
-### Opening the Secondary Screen
-
-```dart
-final secondScreen = FlutterSecondScreen.instance;
-
-// Check if a second physical monitor is connected
-if (await secondScreen.isSecondaryDisplayAvailable()) {
-  await secondScreen.openSecondaryScreen(arguments: ['second-screen']);
-}
-```
-
-### Sending Events Between Screens
-
-```dart
-// Send from Main Screen to Secondary Screen
-await secondScreen.sendEventToSecondary('cartUpdate', {
-  'items': [
-    {'name': 'Sneakers', 'price': 89.99},
-  ],
-  'total': 89.99,
-});
-
-// Send from Secondary Screen back to Main Screen (e.g. Signature or Confirmation)
-await secondScreen.sendEventToMain('signatureApproved', signatureData);
-```
-
-### Listening to Events with `SecondScreenListenerMixin`
-
-```dart
-class CustomerDisplayScreen extends StatefulWidget {
-  const CustomerDisplayScreen({super.key});
-
-  @override
-  State<CustomerDisplayScreen> createState() => _CustomerDisplayScreenState();
-}
-
-class _CustomerDisplayScreenState extends State<CustomerDisplayScreen>
-    with SecondScreenListenerMixin {
-  Map<String, dynamic>? cartData;
-
-  @override
-  Map<String, void Function(dynamic)> getSecondScreenEventListeners() {
-    return {
-      'cartUpdate': (data) {
-        setState(() {
-          cartData = data as Map<String, dynamic>;
-        });
-      },
-      'reset': (_) {
-        setState(() {
-          cartData = null;
-        });
-      },
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (cartData == null) {
-      return const Center(child: Text('Welcome!'));
-    }
-    return Text('Total: \$${cartData!['total']}');
-  }
-}
-```
-
-### Listening to Events with `SecondScreenEventListener` Widget
-
-```dart
-SecondScreenEventListener(
-  eventName: 'cartUpdate',
-  onEvent: (data) {
-    debugPrint('Received cart update: $data');
-  },
-  child: const MyCartWidget(),
-);
-```
 
 ---
 

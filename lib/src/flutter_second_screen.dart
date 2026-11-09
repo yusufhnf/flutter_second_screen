@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+
 import 'data/datasources/second_screen_platform.dart';
 import 'data/repositories/second_screen_repository_impl.dart';
 import 'domain/entities/screen_display.dart';
@@ -29,6 +31,10 @@ class FlutterSecondScreen implements SecondScreenRepository {
 
   /// Ensures native windowing and platform hooks are initialized before accessing windows.
   ///
+  /// Optional: the native plugin resolves the window on first use, but calling
+  /// it early keeps [SecondScreenEvent.fromWindowId] and window IDs accurate
+  /// from the start. Already done for you by [run].
+  ///
   /// Call this at the start of your application `main()` entrypoint:
   /// ```dart
   /// void main(List<String> args) async {
@@ -39,6 +45,48 @@ class FlutterSecondScreen implements SecondScreenRepository {
   /// ```
   static Future<void> ensureInitialized([List<String> args = const []]) =>
       SecondScreenPlatform.instance.ensureInitialized(args);
+
+  /// Boots the app for whichever window this engine runs in.
+  ///
+  /// Replaces the usual `main()` boilerplate: initializes the binding and
+  /// native plugin, then runs [mainApp] in the main window, or configures the
+  /// secondary window with [config] and runs [secondaryApp] in it.
+  ///
+  /// ```dart
+  /// void main(List<String> args) => FlutterSecondScreen.run(
+  ///       args,
+  ///       mainApp: () => const CashierApp(),
+  ///       secondaryApp: () => const CustomerDisplayApp(),
+  ///       config: const SecondScreenConfig(title: 'Customer Display'),
+  ///     );
+  /// ```
+  ///
+  /// [beforeRunApp] runs after initialization and before `runApp`, for setup
+  /// such as dependency injection; it receives whether this is the secondary
+  /// window. If no secondary display is connected, the secondary window is
+  /// closed and [secondaryApp] is not run.
+  static Future<void> run(
+    List<String> args, {
+    required Widget Function() mainApp,
+    required Widget Function() secondaryApp,
+    SecondScreenConfig config = const SecondScreenConfig(),
+    FutureOr<void> Function(bool isSecondary)? beforeRunApp,
+    String flag = 'second-screen',
+  }) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await ensureInitialized(args);
+
+    final secondary = isSecondaryScreen(args, flag: flag);
+    await beforeRunApp?.call(secondary);
+
+    if (!secondary) {
+      runApp(mainApp());
+      return;
+    }
+    if (await instance.initSecondaryDisplay(config)) {
+      runApp(secondaryApp());
+    }
+  }
 
   /// Helper to check if the current launch process is running as the secondary screen.
   ///

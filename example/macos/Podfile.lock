@@ -1,0 +1,22 @@
+PODS:
+  - flutter_second_screen (1.0.1):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+
+DEPENDENCIES:
+  - flutter_second_screen (from `Flutter/ephemeral/.symlinks/plugins/flutter_second_screen/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+
+EXTERNAL SOURCES:
+  flutter_second_screen:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_second_screen/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+
+SPEC CHECKSUMS:
+  flutter_second_screen: fe8decabcf5faa02dcc33577a9fb2158ecd1cd60
+  FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
+
+PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
+
+COCOAPODS: 1.16.2

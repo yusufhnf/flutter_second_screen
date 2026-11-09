@@ -1,4 +1,5 @@
 import '../entities/second_screen_config.dart';
+import '../entities/second_screen_exception.dart';
 
 /// Contract for managing the lifecycle of the secondary screen window.
 abstract interface class SecondScreenWindowManager {
@@ -6,12 +7,18 @@ abstract interface class SecondScreenWindowManager {
   ///
   /// Typically called from the secondary screen process when launched.
   /// Returns `true` if initialization succeeded, or `false` otherwise.
+  /// When no secondary display is connected, the secondary window is closed
+  /// and `false` is returned.
   Future<bool> initSecondaryDisplay([SecondScreenConfig? config]);
 
   /// Opens the secondary screen window if a second physical display is available
   /// and the secondary screen window is not already open.
   ///
   /// [arguments] contains CLI/process parameters passed to the secondary window.
+  ///
+  /// Throws a [SecondScreenException] with code
+  /// [SecondScreenException.setupRequired] if the app runner has not been set
+  /// up for secondary windows.
   Future<void> openSecondaryScreen(
       {List<String> arguments = const ['second-screen']});
 
