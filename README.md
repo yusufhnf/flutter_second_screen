@@ -35,7 +35,7 @@ No third-party window or display packages: secondary windows, display detection,
 
 ```yaml
 dependencies:
-  flutter_second_screen: ^1.0.0
+  flutter_second_screen: ^2.0.0-dev.1
 ```
 
 ### 2. Platform setup (one time)
@@ -318,7 +318,7 @@ Window IDs: the main window is `0`, the secondary window is `1`.
 
 ---
 
-## 🔄 Migrating from 1.0.x
+## 🔄 Migrating from 1.0.x to 2.0.0
 
 1.0.x depended on `window_manager_plus` and `screen_retriever`. Both are gone.
 

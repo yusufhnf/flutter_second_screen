@@ -1,4 +1,4 @@
-## Unreleased
+## 2.0.0-dev.1
 
 - Removed the `window_manager_plus` and `screen_retriever` dependencies in favor of a built-in native desktop plugin (`FlutterSecondScreenPlugin`) for macOS (Swift) and Windows (C++).
 - Added native secondary window creation (one Flutter engine per window), display enumeration, window configuration, and cross-window messaging over the `com.meetucup.flutter_second_screen/desktop_methods` channel.
