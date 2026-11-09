@@ -139,7 +139,7 @@ LRESULT SecondScreenWindow::MessageHandler(HWND hwnd,
                                            LPARAM lparam) noexcept {
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (controller_) {
-    LRESULT result;
+    LRESULT result = 0;
     if (FlutterDesktopViewControllerHandleTopLevelWindowProc(
             controller_, hwnd, message, wparam, lparam, &result)) {
       return result;

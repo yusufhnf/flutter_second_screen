@@ -12,6 +12,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace flutter_second_screen {
@@ -137,8 +138,19 @@ std::string WideToUtf8(const std::wstring& input) {
 
 // --- Display helpers ---
 
+// `FlutterDesktopGetDpiForMonitor` takes an `HMONITOR` in current Flutter
+// versions and an `intptr_t` in older ones; support both.
+template <typename GetDpiFunction>
+UINT CallGetDpiForMonitor(GetDpiFunction get_dpi, HMONITOR monitor) {
+  if constexpr (std::is_invocable_v<GetDpiFunction, HMONITOR>) {
+    return get_dpi(monitor);
+  } else {
+    return get_dpi(reinterpret_cast<intptr_t>(monitor));
+  }
+}
+
 double GetScaleFactor(HMONITOR monitor) {
-  return FlutterDesktopGetDpiForMonitor(reinterpret_cast<intptr_t>(monitor)) /
+  return CallGetDpiForMonitor(&FlutterDesktopGetDpiForMonitor, monitor) /
          kBaseDpi;
 }
 
@@ -301,8 +313,8 @@ void FlutterSecondScreenPlugin::HandleMethodCall(
     result->Success(EncodableValue(window_id_.value_or(0)));
   } else if (method == "getWindowIds") {
     EncodableList ids;
-    for (const auto& [id, entry] : Windows()) {
-      ids.push_back(EncodableValue(id));
+    for (const auto& window : Windows()) {
+      ids.push_back(EncodableValue(window.first));
     }
     result->Success(EncodableValue(ids));
   } else if (method == "getDisplays") {
@@ -448,18 +460,20 @@ void FlutterSecondScreenPlugin::ConfigureWindow(
   const auto monitor_info = GetMonitorInfoEx(monitor);
   const double scale = GetScaleFactor(monitor);
 
-  LONG style = GetWindowLong(hwnd, GWL_STYLE);
+  constexpr DWORD kOverlappedStyle = static_cast<DWORD>(WS_OVERLAPPEDWINDOW);
+  constexpr DWORD kPopupStyle = static_cast<DWORD>(WS_POPUP);
+  constexpr DWORD kResizeStyle =
+      static_cast<DWORD>(WS_THICKFRAME | WS_MAXIMIZEBOX);
+  DWORD style = static_cast<DWORD>(GetWindowLong(hwnd, GWL_STYLE));
   if (full_screen) {
-    style &= ~WS_OVERLAPPEDWINDOW;
-    style |= WS_POPUP;
+    style = (style & ~kOverlappedStyle) | kPopupStyle;
   } else {
-    style &= ~WS_POPUP;
-    style |= WS_OVERLAPPEDWINDOW;
+    style = (style & ~kPopupStyle) | kOverlappedStyle;
     if (!resizable) {
-      style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+      style &= ~kResizeStyle;
     }
   }
-  SetWindowLong(hwnd, GWL_STYLE, style);
+  SetWindowLong(hwnd, GWL_STYLE, static_cast<LONG>(style));
 
   RECT frame;
   if (full_screen) {
