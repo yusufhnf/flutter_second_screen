@@ -1,3 +1,8 @@
+## 2.0.0-dev.2
+
+- Fixed Windows build error with current Flutter versions: `FlutterDesktopGetDpiForMonitor` now accepts both the `HMONITOR` and legacy `intptr_t` signatures.
+- Fixed potential Windows `/W4 /WX` build failures in window style handling.
+
 ## 2.0.0-dev.1
 
 - Removed the `window_manager_plus` and `screen_retriever` dependencies in favor of a built-in native desktop plugin (`FlutterSecondScreenPlugin`) for macOS (Swift) and Windows (C++).

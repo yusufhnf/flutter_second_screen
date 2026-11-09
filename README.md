@@ -35,7 +35,7 @@ No third-party window or display packages: secondary windows, display detection,
 
 ```yaml
 dependencies:
-  flutter_second_screen: ^2.0.0-dev.1
+  flutter_second_screen: ^2.0.0-dev.2
 ```
 
 ### 2. Platform setup (one time)

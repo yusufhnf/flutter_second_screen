@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_second_screen'
-  s.version          = '2.0.0-dev.1'
+  s.version          = '2.0.0-dev.2'
   s.summary          = 'Secondary screen windows and cross-screen communication for Flutter desktop.'
   s.description      = <<-DESC
 Secondary screen windows, multi-display detection, and cross-screen communication for Flutter desktop.
