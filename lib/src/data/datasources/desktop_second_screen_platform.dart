@@ -43,7 +43,9 @@ class DesktopSecondScreenPlatform extends SecondScreenPlatform {
   /// The ID of the window running this engine.
   int get windowId => _windowId;
 
-  DesktopSecondScreenPlatform();
+  DesktopSecondScreenPlatform() {
+    _ensureMethodCallHandlerRegistered();
+  }
 
   void _ensureMethodCallHandlerRegistered() {
     if (!_isHandlerRegistered) {
@@ -187,6 +189,7 @@ class DesktopSecondScreenPlatform extends SecondScreenPlatform {
     int? targetWindowId,
   }) async {
     final targetId = targetWindowId ?? secondaryWindowId;
+    _ensureMethodCallHandlerRegistered();
     try {
       await _methodChannel.invokeMethod<dynamic>('sendEvent', {
         'targetWindowId': targetId,
@@ -194,11 +197,13 @@ class DesktopSecondScreenPlatform extends SecondScreenPlatform {
         'data': data,
       });
     } on PlatformException catch (e) {
-      // Sending to a window that is not open is a no-op, so callers do not
-      // need to check `isSecondaryScreenOpen` before every update.
-      if (e.code != 'WINDOW_NOT_FOUND') rethrow;
+      // Sending to a window that is not open or still booting/restarting is
+      // a no-op, so callers do not need to guard every update.
+      if (e.code != 'WINDOW_NOT_FOUND' && e.code != 'TARGET_NOT_READY') {
+        rethrow;
+      }
       debugPrint(
-        'flutter_second_screen: dropped "$eventName", window $targetId is not open.',
+        'flutter_second_screen: dropped "$eventName", window $targetId is not ready (${e.code}).',
       );
     }
   }

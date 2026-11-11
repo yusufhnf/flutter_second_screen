@@ -47,6 +47,18 @@ std::map<int, WindowEntry>& Windows() {
   return *windows;
 }
 
+std::optional<int> FindOwnedWindowId(HWND own_window) {
+  if (!own_window) {
+    return std::nullopt;
+  }
+  for (const auto& pair : Windows()) {
+    if (pair.second.owned_window && pair.second.hwnd == own_window) {
+      return pair.first;
+    }
+  }
+  return std::nullopt;
+}
+
 SecondScreenWindow::RegisterPluginsCallback g_register_plugins = nullptr;
 
 // --- Argument helpers ---
@@ -289,8 +301,19 @@ FlutterSecondScreenPlugin::~FlutterSecondScreenPlugin() {
   if (it->second.owned_window) {
     // The host window releases itself once it is destroyed.
     it->second.plugin = nullptr;
-  } else {
-    windows.erase(it);
+    return;
+  }
+
+  windows.erase(it);
+  // Shut down any remaining secondary windows when the main window closes.
+  std::vector<std::unique_ptr<SecondScreenWindow>> remaining;
+  for (auto iter = windows.begin(); iter != windows.end();) {
+    if (iter->second.owned_window) {
+      remaining.push_back(std::move(iter->second.owned_window));
+      iter = windows.erase(iter);
+    } else {
+      ++iter;
+    }
   }
 }
 
@@ -337,7 +360,8 @@ void FlutterSecondScreenPlugin::HandleMethodCall(
 void FlutterSecondScreenPlugin::EnsureInitialized(
     const EncodableMap& args,
     std::unique_ptr<MethodResult> result) {
-  BindToWindow(GetInt(args, "windowId").value_or(0));
+  const int requested_id = GetInt(args, "windowId").value_or(0);
+  BindToWindow(FindOwnedWindowId(GetOwnWindow()).value_or(requested_id));
   result->Success(EncodableValue(true));
 }
 
@@ -346,14 +370,7 @@ void FlutterSecondScreenPlugin::BindToWindowIfNeeded() {
     return;
   }
   // A window created by this plugin keeps its ID; any other is the main one.
-  HWND own_window = GetOwnWindow();
-  for (const auto& [id, entry] : Windows()) {
-    if (own_window && entry.owned_window && entry.hwnd == own_window) {
-      BindToWindow(id);
-      return;
-    }
-  }
-  BindToWindow(0);
+  BindToWindow(FindOwnedWindowId(GetOwnWindow()).value_or(0));
 }
 
 void FlutterSecondScreenPlugin::BindToWindow(int id) {
@@ -509,7 +526,14 @@ void FlutterSecondScreenPlugin::ConfigureWindow(
   SetWindowPos(hwnd, always_on_top ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-  ShowWindow(hwnd, (!full_screen && maximize) ? SW_MAXIMIZE : SW_SHOW);
+  const bool was_visible = IsWindowVisible(hwnd) != FALSE;
+  if (!was_visible) {
+    ShowWindow(hwnd, (!full_screen && maximize) ? SW_MAXIMIZE : SW_SHOW);
+  } else if (!full_screen && maximize && !IsZoomed(hwnd)) {
+    ShowWindow(hwnd, SW_MAXIMIZE);
+  } else {
+    ShowWindow(hwnd, SW_SHOWNA);
+  }
 
   if (GetBool(args, "skipTaskbar", false)) {
     SetSkipTaskbar(hwnd);
@@ -551,7 +575,11 @@ void FlutterSecondScreenPlugin::SendEvent(
             shared_result->Error(code, message,
                                  details ? *details : EncodableValue());
           },
-          [shared_result]() { shared_result->NotImplemented(); }));
+          [shared_result, target_id]() {
+            shared_result->Error("TARGET_NOT_READY",
+                                 "Target window " + std::to_string(target_id) +
+                                     " is not ready to receive events yet.");
+          }));
 }
 
 // --- Helpers ---

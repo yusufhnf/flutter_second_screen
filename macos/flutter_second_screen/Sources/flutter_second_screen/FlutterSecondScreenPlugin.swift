@@ -112,7 +112,14 @@ public class FlutterSecondScreenPlugin: NSObject, FlutterPlugin {
   // MARK: - Window lifecycle
 
   private func ensureInitialized(_ args: [String: Any], result: @escaping FlutterResult) {
-    bind(toWindowId: (args["windowId"] as? NSNumber)?.intValue ?? 0)
+    var resolvedId = (args["windowId"] as? NSNumber)?.intValue ?? 0
+    if let hostWindow = registrar.view?.window,
+       let createdId = Self.windows.first(where: { _, entry in
+         entry.flutterViewController != nil && entry.window === hostWindow
+       })?.key {
+      resolvedId = createdId
+    }
+    bind(toWindowId: resolvedId)
     result(true)
   }
 
@@ -245,6 +252,7 @@ public class FlutterSecondScreenPlugin: NSObject, FlutterPlugin {
 
     let fullScreen = args["fullScreen"] as? Bool ?? false
     let resizable = args["resizable"] as? Bool ?? false
+    let isInFullScreen = window.styleMask.contains(.fullScreen)
 
     if let title = args["title"] as? String {
       window.title = title
@@ -260,17 +268,19 @@ public class FlutterSecondScreenPlugin: NSObject, FlutterPlugin {
       NSApp.setActivationPolicy(.accessory)
     }
 
-    var frame = window.frame
-    if let width = Self.double(args["width"]), let height = Self.double(args["height"]) {
-      frame.size = NSSize(width: width, height: height)
-    }
-    if let x = Self.double(args["x"]), let y = Self.double(args["y"]) {
-      frame.origin = Self.bottomLeftOrigin(x: x, y: y, height: frame.height)
-      window.setFrame(frame, display: true)
-    } else {
-      window.setFrame(frame, display: true)
-      if args["center"] as? Bool ?? false {
-        window.center()
+    if !isInFullScreen {
+      var frame = window.frame
+      if let width = Self.double(args["width"]), let height = Self.double(args["height"]) {
+        frame.size = NSSize(width: width, height: height)
+      }
+      if let x = Self.double(args["x"]), let y = Self.double(args["y"]) {
+        frame.origin = Self.bottomLeftOrigin(x: x, y: y, height: frame.height)
+        window.setFrame(frame, display: true)
+      } else {
+        window.setFrame(frame, display: true)
+        if args["center"] as? Bool ?? false {
+          window.center()
+        }
       }
     }
 
@@ -282,16 +292,18 @@ public class FlutterSecondScreenPlugin: NSObject, FlutterPlugin {
     }
 
     window.level = (args["alwaysOnTop"] as? Bool ?? false) ? .floating : .normal
-    window.makeKeyAndOrderFront(nil)
+    if !window.isVisible {
+      window.makeKeyAndOrderFront(nil)
+    }
 
     if fullScreen {
       window.collectionBehavior.insert(.fullScreenPrimary)
-      if !window.styleMask.contains(.fullScreen) {
+      if !isInFullScreen {
         DispatchQueue.main.async {
           window.toggleFullScreen(nil)
         }
       }
-    } else if args["maximize"] as? Bool ?? false, let screen = window.screen {
+    } else if !isInFullScreen, args["maximize"] as? Bool ?? false, let screen = window.screen {
       window.setFrame(screen.visibleFrame, display: true)
     }
 
@@ -346,7 +358,15 @@ public class FlutterSecondScreenPlugin: NSObject, FlutterPlugin {
       "data": args["data"],
     ]
     target.channel.invokeMethod("onEvent", arguments: payload) { value in
-      result(value)
+      if let obj = value as? NSObject, obj === FlutterMethodNotImplemented {
+        result(
+          FlutterError(
+            code: "TARGET_NOT_READY",
+            message: "Target window \(targetId) is not ready to receive events yet.",
+            details: nil))
+      } else {
+        result(value)
+      }
     }
   }
 

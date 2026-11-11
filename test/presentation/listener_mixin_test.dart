@@ -147,6 +147,34 @@ void main() {
     expect(receivedValue, 'pong');
   });
 
+  testWidgets('SecondScreenEventListener updates callback when onEvent changes',
+      (tester) async {
+    final calls = <String>[];
+
+    await tester.pumpWidget(
+      SecondScreenEventListener(
+        eventName: 'ping',
+        messenger: messenger,
+        onEvent: (data) => calls.add('first:$data'),
+        child: const Text('Listener Child', textDirection: TextDirection.ltr),
+      ),
+    );
+
+    await tester.pumpWidget(
+      SecondScreenEventListener(
+        eventName: 'ping',
+        messenger: messenger,
+        onEvent: (data) => calls.add('second:$data'),
+        child: const Text('Listener Child', textDirection: TextDirection.ltr),
+      ),
+    );
+
+    messenger.triggerEvent('ping', 'pong');
+    await tester.pump();
+
+    expect(calls, ['second:pong']);
+  });
+
   testWidgets('SecondScreenEventBuilder rebuilds on event arrival',
       (tester) async {
     await tester.pumpWidget(

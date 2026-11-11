@@ -45,7 +45,8 @@ class _SecondScreenEventListenerState extends State<SecondScreenEventListener> {
   void didUpdateWidget(covariant SecondScreenEventListener oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.eventName != widget.eventName ||
-        oldWidget.messenger != widget.messenger) {
+        oldWidget.messenger != widget.messenger ||
+        oldWidget.onEvent != widget.onEvent) {
       (oldWidget.messenger ?? FlutterSecondScreen.instance)
           .removeEventListener(oldWidget.eventName, oldWidget.onEvent);
       _messenger.addEventListener(widget.eventName, widget.onEvent);

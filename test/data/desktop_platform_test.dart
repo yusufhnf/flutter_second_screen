@@ -256,6 +256,36 @@ void main() {
       await platform.sendEvent('cartUpdate', null);
     });
 
+    test('sendEvent is a no-op when the target window is not ready yet',
+        () async {
+      failures['sendEvent'] = PlatformException(code: 'TARGET_NOT_READY');
+
+      await platform.sendEvent('cartUpdate', null);
+    });
+
+    test('registers method call handler on construction for hot restart safety',
+        () async {
+      const codec = StandardMethodCodec();
+      ByteData? reply;
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        platform.methodChannel.name,
+        codec.encodeMethodCall(const MethodCall('onEvent', {
+          'eventName': 'ping',
+          'fromWindowId': 1,
+          'data': 'ok',
+        })),
+        (data) {
+          reply = data;
+        },
+      );
+
+      // A registered handler responds with a non-null encoded envelope (null result),
+      // whereas an unregistered handler leaves `reply` null (MissingPluginException).
+      expect(reply, isNotNull);
+      expect(codec.decodeEnvelope(reply!), isNull);
+    });
+
     test('sendEvent rethrows other platform errors', () async {
       failures['sendEvent'] = PlatformException(code: 'OTHER');
 
