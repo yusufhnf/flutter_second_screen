@@ -1,5 +1,8 @@
 #include "second_screen_window.h"
 
+#include <cwchar>
+#include <iterator>
+
 namespace flutter_second_screen {
 
 namespace {
@@ -31,6 +34,16 @@ SecondScreenWindow::~SecondScreenWindow() {
     }
     DestroyWindow(handle);
   }
+}
+
+// static
+bool SecondScreenWindow::IsOwnWindow(HWND window) {
+  wchar_t class_name[64] = {};
+  if (!GetClassNameW(window, class_name,
+                     static_cast<int>(std::size(class_name)))) {
+    return false;
+  }
+  return wcscmp(class_name, kWindowClassName) == 0;
 }
 
 const wchar_t* SecondScreenWindow::GetWindowClass() {
@@ -96,14 +109,20 @@ bool SecondScreenWindow::Create(
     return false;
   }
 
+  // Register plugins before parenting the view, like the default runner does.
+  // Plugins that subclass `GetAncestor(view, GA_ROOT)` (e.g. media_kit_video,
+  // which keeps a single process-wide instance) then subclass the Flutter view
+  // in every engine, whose original window procs are interchangeable. If they
+  // subclassed this host window instead, messages for the main window's view
+  // would be routed to `SecondScreenWindow::WndProc` and crash.
+  if (register_plugins) {
+    register_plugins(engine_);
+  }
+
   child_content_ =
       FlutterDesktopViewGetHWND(FlutterDesktopViewControllerGetView(controller_));
   SetParent(child_content_, window_handle_);
   ResizeChildContent();
-
-  if (register_plugins) {
-    register_plugins(engine_);
-  }
   return true;
 }
 
@@ -122,6 +141,18 @@ LRESULT CALLBACK SecondScreenWindow::WndProc(HWND window,
                                              UINT message,
                                              WPARAM wparam,
                                              LPARAM lparam) noexcept {
+  // A plugin that subclasses windows through a shared delegate can forward
+  // another window's messages here. Never interpret a foreign window's
+  // GWLP_USERDATA as `SecondScreenWindow*`; hand it to its own class proc.
+  if (!IsOwnWindow(window)) {
+    auto class_proc =
+        reinterpret_cast<WNDPROC>(GetClassLongPtr(window, GCLP_WNDPROC));
+    if (class_proc && class_proc != &SecondScreenWindow::WndProc) {
+      return CallWindowProc(class_proc, window, message, wparam, lparam);
+    }
+    return DefWindowProc(window, message, wparam, lparam);
+  }
+
   if (message == WM_NCCREATE) {
     auto create_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
     SetWindowLongPtr(window, GWLP_USERDATA,

@@ -50,6 +50,9 @@ class SecondScreenWindow {
 
   static const wchar_t* GetWindowClass();
 
+  // Whether [window] was created with this class's window class.
+  static bool IsOwnWindow(HWND window);
+
   int id_;
   std::function<void(int)> on_destroyed_;
   HWND window_handle_ = nullptr;
