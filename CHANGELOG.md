@@ -1,3 +1,14 @@
+## 2.0.0-dev.3
+
+- Fixed Windows force-close crash when plugins subclass `GetAncestor(view, GA_ROOT)` by registering secondary engine plugins before parenting the Flutter view and guarding `SecondScreenWindow::WndProc` with `IsOwnWindow` against foreign window handles.
+- Added clean shutdown of remaining secondary windows on Windows when the main window closes.
+- Improved Hot Restart and Hot Reload reliability across Windows and macOS:
+  - Register the desktop method channel handler eagerly on construction.
+  - Prevent secondary windows from binding as window `0` during `ensureInitialized`.
+  - Handle `TARGET_NOT_READY` gracefully when a target window is still booting or restarting, avoiding `MissingPluginException`.
+  - Preserve fullscreen state and avoid stealing foreground focus when reconfiguring an already-visible secondary window on Hot Restart.
+  - Update `SecondScreenEventListener` callbacks cleanly when `onEvent` changes on widget rebuild or Hot Reload.
+
 ## 2.0.0-dev.2
 
 - Fixed Windows build error with current Flutter versions: `FlutterDesktopGetDpiForMonitor` now accepts both the `HMONITOR` and legacy `intptr_t` signatures.
