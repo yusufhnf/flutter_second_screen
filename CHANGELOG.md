@@ -1,3 +1,13 @@
+## 2.0.0
+
+Stable release of the standalone native desktop architecture (consolidating `2.0.0-dev.1` through `2.0.0-dev.3`):
+
+- **Built-in native desktop plugin**: Replaced `window_manager_plus` and `screen_retriever` with a self-contained native macOS (Swift) and Windows (C++) plugin (`FlutterSecondScreenPlugin`) managing secondary windows, display enumeration, and cross-window messaging.
+- **One-line bootstrapping & typed errors**: Added `FlutterSecondScreen.run` (with optional `beforeRunApp`), `SecondScreenException`, automatic window ID reuse, and graceful no-op handling when targeting closed or booting/restarting windows.
+- **Windows stability fixes**: Supports both `FlutterDesktopGetDpiForMonitor` signatures, avoids `/W4 /WX` warnings, registers secondary engine plugins before parenting the view with `IsOwnWindow` guarding in `SecondScreenWindow::WndProc`, and cleanly shuts down remaining secondary windows when the main window closes.
+- **Hot Restart & Hot Reload reliability**: Eager method channel handler registration, protected window ID resolution, `TARGET_NOT_READY` handling during isolate restarts, preserved fullscreen/focus state when reconfiguring visible windows, and `SecondScreenEventListener` callback updates.
+- **Breaking:** App runners must register plugins for secondary engines (`FlutterSecondScreenPlugin.registerGeneratedPlugins` on macOS, `FlutterSecondScreenPluginSetRegisterPluginsCallback` on Windows). See the migration guide in `README.md`.
+
 ## 2.0.0-dev.3
 
 - Fixed Windows force-close crash when plugins subclass `GetAncestor(view, GA_ROOT)` by registering secondary engine plugins before parenting the Flutter view and guarding `SecondScreenWindow::WndProc` with `IsOwnWindow` against foreign window handles.
