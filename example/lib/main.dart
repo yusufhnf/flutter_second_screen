@@ -1,32 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_second_screen/flutter_second_screen.dart';
 
-void main(List<String> args) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await FlutterSecondScreen.ensureInitialized(args);
-  debugPrint('>>> main started with args=$args');
-  if (FlutterSecondScreen.isSecondaryScreen(args)) {
-    await const MethodChannel(
-      'com.meetucup.flutter_second_screen/desktop_methods',
-    ).invokeMethod('configureWindow', {
-      'title': 'Secondary Test',
-      'fullScreen': true,
-      'maximize': false,
-      'center': true,
-      'width': 400.0,
-      'height': 300.0,
-    });
-    // Send immediately without delay to stress-test Hot Restart ordering.
-    await FlutterSecondScreen.instance.sendEventToMain('ready', 'v1');
-    runApp(const SecondaryScreenApp());
-  } else {
-    runApp(const MainScreenApp());
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    await FlutterSecondScreen.instance.openSecondaryScreen();
-    await FlutterSecondScreen.instance.sendEventToSecondary('sync', 'hello');
-  }
-}
+void main(List<String> args) => FlutterSecondScreen.run(
+      args,
+      mainApp: () => const MainScreenApp(),
+      secondaryApp: () => const SecondaryScreenApp(),
+      config: const SecondScreenConfig(title: 'Customer Display Window'),
+    );
 
 /// Main Screen Application (cashier / POS).
 class MainScreenApp extends StatelessWidget {
